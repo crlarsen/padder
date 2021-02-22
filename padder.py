@@ -87,78 +87,72 @@ module padder%d(A, B, Cin, S, Cout);
 ''' % (count, count, count))
 #Header info
 
+def node(i, j, l, r):
+  if i == j:
+    p1Input = "P[%d]" % (i)
+    g1Input = "G[%d]" % (i)
+  else:
+    p1Input = "\\P%d:%d " % (i, j)
+    g1Input = "\\G%d:%d " % (i, j)
+
+  if (l == r) and (l != -1):
+    p2Input = "P[%d]" % (l)
+    g2Input = "G[%d]" % (l)
+  else:
+    p2Input = "\\P%d:%d " % (l, r)
+    g2Input = "\\G%d:%d " % (l, r)
+
+  pOutput = "\\P%d:%d " % (i, r)
+  gOutput = "\\G%d:%d " % (i, r)
+
+  if r == -1:
+    print("  wire %s;\n" % (gOutput))
+    print("  Gij \\%d:%d (%s, %s, %s, %s);\n" % (i, r, p1Input, g1Input, g2Input, gOutput))
+  else:
+    print("  wire %s, %s;\n" % (pOutput, gOutput))
+    print("  PijGij \\%d:%d (%s, %s, %s, %s, %s, %s);\n" % (i, r, p1Input, p2Input, g1Input, g2Input, pOutput, gOutput))
+
+
 masks = []
 
 for i in range(count-1):
   if i == 0:
-    print("  wire \\G%d:-1 ;\n" % (i))
-    print("  Gij \\%d:%d (P[%d], G[%d], \\G-1:-1 , \\G%d:-1 );\n" % (i, i-1, i, i, i))
+    node(i, i, -1, -1)
     masks.append([0, -1])
   elif (i & 1) == 0:
     j = i - 1
-    print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, j, i, j))
-    print("  PijGij \\%d:%d (P[%d], P[%d], G[%d], G[%d], \\P%d:%d , \\G%d:%d );\n" % (i, j, i, j, i, j, i, j, i, j))
+    node(i, i, j, j)
     masks.append([i, j])
     r = j
     if (i & 3) == 2:
       [i, j] = masks.pop()
       [l, r] = masks.pop()
-      if r == -1:
-        print("  wire \\G%d:%d ;\n" % (i, r))
-        print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-      else:
-        print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-        print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+      node(i, j, l, r)
       masks.append([i, r])
       if (i & 7) == 6:
         [i, j] = masks.pop()
         [l, r] = masks.pop()
-        if r == -1:
-          print("  wire \\G%d:%d ;\n" % (i, r))
-          print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-        else:
-          print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-          print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+        node(i, j, l, r)
         masks.append([i, r])
         if (i & 15) == 14:
           [i, j] = masks.pop()
           [l, r] = masks.pop()
-          if r == -1:
-            print("  wire \\G%d:%d ;\n" % (i, r))
-            print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-          else:
-            print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-            print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+          node(i, j, l, r)
           masks.append([i, r])
           if (i & 31) == 30:
             [i, j] = masks.pop()
             [l, r] = masks.pop()
-            if r == -1:
-              print("  wire \\G%d:%d ;\n" % (i, r))
-              print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-            else:
-              print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-              print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+            node(i, j, l, r)
             masks.append([i, r])
             if (i & 63) == 62:
               [i, j] = masks.pop()
               [l, r] = masks.pop()
-              if r == -1:
-                print("  wire \\G%d:%d ;\n" % (i, r))
-                print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-              else:
-                print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-                print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+              node(i, j, l, r)
               masks.append([i, r])
               if (i & 127) == 126:
                 [i, j] = masks.pop()
                 [l, r] = masks.pop()
-                if r == -1:
-                  print("  wire \\G%d:%d ;\n" % (i, r))
-                  print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-                else:
-                  print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-                  print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+                node(i, j, l, r)
                 masks.append([i, r])
     # End nested if's
     top = len(masks) - 1
@@ -166,30 +160,13 @@ for i in range(count-1):
     while j != -1:
       top = top - 1
       [l, r] = masks[top]
-      if r == -1:
-        print("  wire \\G%d:%d ;\n" % (i, r))
-        print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-      else:
-        print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-        print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+      node(i, j, l, r)
       j = r
   else:
     j = i
     for k in range(len(masks)-1, -1, -1):
       [l, r] = masks[k]
-      if i == j:
-        if r == -1:
-          print("  wire \\G%d:%d ;\n" % (i, r))
-          print("  Gij \\%d:%d (P[%d], G[%d], \\G%d:%d , \\G%d:%d );\n" % (i, r, i, i, l, r, i, r))
-        else:
-          print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-          print("  PijGij \\%d:%d (P[%d], \\P%d:%d , G[%d], \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, l, r, i, l, r, i, r, i, r))
-      elif r == -1:
-        print("  wire \\G%d:%d ;\n" % (i, r))
-        print("  Gij \\%d:%d (\\P%d:%d , \\G%d:%d , \\G%d:%d , \\G%d:%d );\n" % (i, r, i, j, i, j, l, r, i, r))
-      else:
-        print("  wire \\P%d:%d , \\G%d:%d ;\n" % (i, r, i, r))
-        print("  PijGij \\%d:%d (\\P%d:%d , \\P%d:%d , \\G%d:%d , \\G%d:%d , \\P%d:%d , \\G%d:%d );\n" % (i, r, i, j, l, r, i, j, l, r, i, r, i, r))
+      node(i, j, l, r)
       j = r
   print("  Sum s%d(\\G%d:-1 , A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
 
