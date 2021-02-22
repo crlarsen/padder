@@ -84,9 +84,10 @@ module padder%d(A, B, Cin, S, Cout);
   assign \P-1:-1 = 1'b0;
 
   Sum s0(\G-1:-1 , A[0], B[0], S[0]); // Last line
-''' % (count, count, count))
+'''[1:] % (count, count, count))
 #Header info
 
+# Compute the next node in the net.
 def node(i, j, l, r):
   if i == j:
     p1Input = "P[%d]" % (i)
@@ -106,6 +107,9 @@ def node(i, j, l, r):
   gOutput = "\\G%d:%d " % (i, r)
 
   if r == -1:
+    # We don't need to compute \Pi:-1 because it will never be used.
+    # This keeps the Verilog compiler from complaining that we have
+    # outputs not connected to inputs.
     print("  wire %s;\n" % (gOutput))
     print("  Gij \\%d:%d (%s, %s, %s, %s);\n" % (i, r, p1Input, g1Input, g2Input, gOutput))
   else:
@@ -113,37 +117,33 @@ def node(i, j, l, r):
     print("  PijGij \\%d:%d (%s, %s, %s, %s, %s, %s);\n" % (i, r, p1Input, p2Input, g1Input, g2Input, pOutput, gOutput))
 
 
-masks = []
+masks = [[-1, -1]]
 
 for i in range(count-1):
-  if (i & 1) == 0:
-    j = i - 1
-    node(i, i, j, j)
-    masks.append([i, j])
+  masks.append([i, i]) # Push new node onto stack.
 
-    m, v = 3, 2
-    while (i & m) == v:
-      [i, j] = masks.pop()
-      [l, r] = masks.pop()
-      node(i, j, l, r)
-      masks.append([i, r])
-      m, v = ((m << 1) | 1), ((v << 1) | 2)
+  # Merge and print top 2 stack items as long as the last N bits of i
+  # are equal to 2**N - 2.
+  m, v = 1, 0 # Start with N = 1
+  while (i & m) == v:
+    [i, j] = masks.pop()
+    [l, r] = masks.pop()
+    node(i, j, l, r)
+    masks.append([i, r]) # Merge the 2 top nodes.
+    m, v = ((m << 1) | 1), ((v << 1) | 2) # N = N + 1
 
-    top = len(masks) - 1
-    [i, j] = masks[top]
-    while j != -1:
-      top = top - 1
-      [l, r] = masks[top]
-      node(i, j, l, r)
-      j = r
-  else:
-    j = i
-    for k in range(len(masks)-1, -1, -1):
-      [l, r] = masks[k]
-      node(i, j, l, r)
-      j = r
+  # Perform the rest of the work needed to compute Gi:-1
+  top = len(masks) - 1
+  [i, j] = masks[top]
+  while j != -1:
+    top = top - 1
+    [l, r] = masks[top]
+    node(i, j, l, r)
+    j = r
 
+  # Use Gi:-1 to propagate carry to compute bit i+1 of the sum.
   print("  Sum s%d(\\G%d:-1 , A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
 
+# Compute Cout and end the module.
 print("  assign Cout = (\\G%d:-1 & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
 print("endmodule");
