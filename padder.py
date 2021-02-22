@@ -116,45 +116,19 @@ def node(i, j, l, r):
 masks = []
 
 for i in range(count-1):
-  if i == 0:
-    node(i, i, -1, -1)
-    masks.append([0, -1])
-  elif (i & 1) == 0:
+  if (i & 1) == 0:
     j = i - 1
     node(i, i, j, j)
     masks.append([i, j])
-    r = j
-    if (i & 3) == 2:
+
+    m, v = 3, 2
+    while (i & m) == v:
       [i, j] = masks.pop()
       [l, r] = masks.pop()
       node(i, j, l, r)
       masks.append([i, r])
-      if (i & 7) == 6:
-        [i, j] = masks.pop()
-        [l, r] = masks.pop()
-        node(i, j, l, r)
-        masks.append([i, r])
-        if (i & 15) == 14:
-          [i, j] = masks.pop()
-          [l, r] = masks.pop()
-          node(i, j, l, r)
-          masks.append([i, r])
-          if (i & 31) == 30:
-            [i, j] = masks.pop()
-            [l, r] = masks.pop()
-            node(i, j, l, r)
-            masks.append([i, r])
-            if (i & 63) == 62:
-              [i, j] = masks.pop()
-              [l, r] = masks.pop()
-              node(i, j, l, r)
-              masks.append([i, r])
-              if (i & 127) == 126:
-                [i, j] = masks.pop()
-                [l, r] = masks.pop()
-                node(i, j, l, r)
-                masks.append([i, r])
-    # End nested if's
+      m, v = ((m << 1) | 1), ((v << 1) | 2)
+
     top = len(masks) - 1
     [i, j] = masks[top]
     while j != -1:
@@ -168,6 +142,7 @@ for i in range(count-1):
       [l, r] = masks[k]
       node(i, j, l, r)
       j = r
+
   print("  Sum s%d(\\G%d:-1 , A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
 
 print("  assign Cout = (\\G%d:-1 & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
