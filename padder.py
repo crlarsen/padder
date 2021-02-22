@@ -73,18 +73,22 @@ module padder%d(A, B, Cin, S, Cout);
   output [N-1:0] S;
   output Cout;
 
-  wire [N-2:0] P, G;
-
-  assign P = A[N-2:0] | B[N-2:0];
-  assign G = A[N-2:0] & B[N-2:0];
-
-  wire \G-1:-1 , \P-1:-1 ;
-
-  assign \G-1:-1 = Cin;
-  assign \P-1:-1 = 1'b0;
-
-  Sum s0(\G-1:-1 , A[0], B[0], S[0]); // Last line
+  // P[i] is an alias for Pi:i, likewise G[i] is an alias for Gi:i
+  wire [N-2:-1] P, G;
 '''[1:] % (count, count, count))
+
+if count == 1:
+  print(
+'''
+  assign P[-1] = 1'b0;
+  assign G[-1] = Cin;
+'''[1:])
+else:
+  print(
+'''
+  assign P = {A[N-2:0] | B[N-2:0], 1'b0};
+  assign G = {A[N-2:0] & B[N-2:0], Cin};
+'''[1:])
 #Header info
 
 # Compute the next node in the net.
@@ -96,7 +100,7 @@ def node(i, j, l, r):
     p1Input = "\\P%d:%d " % (i, j)
     g1Input = "\\G%d:%d " % (i, j)
 
-  if (l == r) and (l != -1):
+  if (l == r):
     p2Input = "P[%d]" % (l)
     g2Input = "G[%d]" % (l)
   else:
@@ -116,10 +120,9 @@ def node(i, j, l, r):
     print("  wire %s, %s;\n" % (pOutput, gOutput))
     print("  PijGij \\%d:%d (%s, %s, %s, %s, %s, %s);\n" % (i, r, p1Input, p2Input, g1Input, g2Input, pOutput, gOutput))
 
+masks = []
 
-masks = [[-1, -1]]
-
-for i in range(count-1):
+for i in range(-1, count-1):
   masks.append([i, i]) # Push new node onto stack.
 
   # Merge and print top 2 stack items as long as the last N bits of i
@@ -142,8 +145,14 @@ for i in range(count-1):
     j = r
 
   # Use Gi:-1 to propagate carry to compute bit i+1 of the sum.
-  print("  Sum s%d(\\G%d:-1 , A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
+  if i == -1:
+    print("  Sum s%d(G[%d], A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
+  else:
+    print("  Sum s%d(\\G%d:-1 , A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
 
 # Compute Cout and end the module.
-print("  assign Cout = (\\G%d:-1 & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
+if count == 1:
+  print("  assign Cout = (G[%d] & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
+else:
+  print("  assign Cout = (\\G%d:-1 & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
 print("endmodule");
