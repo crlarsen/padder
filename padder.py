@@ -3,7 +3,7 @@ from datetime import datetime
 
 dt = datetime.today().strftime("%m/%d/%Y %I:%M:%S %p")
 
-# TODO: Add support for bit counts which are a power of 2?
+# TODO: Add support for bit counts which are not a power of 2?
 # TODO: Add command line flag to generate overflow bit.
 
 def bitcnt(x):
