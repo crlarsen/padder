@@ -1,6 +1,8 @@
 import sys
+from datetime import datetime
 
-# TODO: Dynamically generate date for "Create Date:" line.
+dt = datetime.today().strftime("%m/%d/%Y %I:%M:%S %p")
+
 # TODO: Add support for bit counts which are a power of 2?
 # TODO: Add command line flag to generate overflow bit.
 
@@ -32,7 +34,7 @@ print(
 // Copyright: Chris Larsen, 2021
 // Engineer: Chris Larsen
 //
-// Create Date: 06/05/2019 07:36:52 PM
+// Create Date: %s
 // Design Name:
 // Module Name: padder%d
 // Project Name:
@@ -100,7 +102,7 @@ module padder%d(A, B, Cin, S, Cout);
 
   // P[i] is an alias for Pi:i, likewise G[i] is an alias for Gi:i
   wire [N-2:-1] P, G;
-'''[1:] % (count, count, count, count))
+'''[1:] % (dt, count, count, count, count))
 
 if count == 1:
   print(
