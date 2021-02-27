@@ -1,5 +1,9 @@
 import sys
 
+# TODO: Dynamically generate date for "Create Date:" line.
+# TODO: Add support for bit counts which are a power of 2?
+# TODO: Add command line flag to generate overflow bit.
+
 def bitcnt(x):
   i = x
   count = 1 if i != 0 else 0
