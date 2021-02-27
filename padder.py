@@ -47,7 +47,7 @@ print(
 //       Since this code was machine generated, in general you shouldn't be
 //       editing this code by hand.
 //
-//       If bugs in the script are found I (Chris Larsen) would ask that you
+//       If bugs are found in the script I (Chris Larsen) would ask that you
 //       send your bug fixes, and or other improvements, back so I can include
 //       them in the git repository for the padder.py script.
 //
