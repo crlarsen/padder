@@ -33,8 +33,6 @@ elif len(sys.argv) < 4:
     usage("ERROR: Missing count argument")
   elif count <= 0:
     usage("ERROR: Number of bits must be a positive number: %d" % (count))
-  elif Overflow and count == 1:
-    usage("ERROR: Overflow flag can't be used unless count is > 1")
 else:
   usage("ERROR: Too many command line arguments")
 
@@ -201,7 +199,7 @@ else:
 
 # If needed, compute the overflow flag
 if Overflow:
-  print("  assign OVF = \\G%d:-1 ^ %s;\n" % (count-2, ("\\G%d:-1 " % (count-3)) if count > 2 else "G[-1]"));
+  print("  assign OVF = (A[%d] & B[%d]) ^ %s;\n" % (count-1, count-1, ("\\G%d:-1 " % (count-2)) if count > 1 else "G[-1]"));
 
 # End the module
 print("endmodule");
