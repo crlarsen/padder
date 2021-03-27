@@ -1,6 +1,11 @@
 import sys
 from datetime import datetime
 
+# You're welcome to use this code but please leave my copyright notice and the
+# citation directing others to my GitHub repository for this code in place.
+#
+# Copyright 2021, Chris Larsen
+
 dt = datetime.today().strftime("%m/%d/%Y %I:%M:%S %p")
 
 def usage(msg):
@@ -64,6 +69,9 @@ print(
 //       prefix adder, and extrapolated it to 32-bits, etc. I'm not an expert
 //       in prefix adders. So if you have questions, please don't ask me;
 //       please buy their fine book! :-)
+//
+//       The Python script used to generate this code can be downloaded from
+//       https://github.com/crlarsen/padder/
 //
 // Dependencies: None
 //
