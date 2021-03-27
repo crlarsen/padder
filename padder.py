@@ -3,28 +3,35 @@ from datetime import datetime
 
 dt = datetime.today().strftime("%m/%d/%Y %I:%M:%S %p")
 
-# TODO: Add support for bit counts which are not a power of 2?
-# TODO: Add command line flag to generate overflow bit.
+def usage(msg):
+  print(msg, file=sys.stderr)
+  print("Usage: %s [-o | --overflow] <number of bits>" % (sys.argv[0]), file=sys.stderr)
+  sys.exit(1)
 
-def bitcnt(x):
-  i = x
-  count = 1 if i != 0 else 0
-  while i & (i-1):
-    count = count + 1
-    i = i & (i-1)
-  return count
+Overflow = False
+CountNotFound = True
 
 if len(sys.argv) == 1:
-  print("ERROR: No argument given\nUsage: %s <power of 2>" % (sys.argv[0]))
-  sys.exit(1)
-elif len(sys.argv) == 2:
-  count = int(sys.argv[1])
-  if bitcnt(count) != 1:
-    print("ERROR: Argument must be a power of 2: %d" % (count))
-    sys.exit(1)
+  usage("ERROR: No arguments given")
+elif len(sys.argv) < 4:
+  for arg in sys.argv[1:]:
+    if arg == "--overflow" or arg == "-o":
+      Overflow = True
+    else:
+      try:
+        count = int(arg)
+        CountNotFound = False
+      except ValueError:
+        usage("ERROR: Input value is not a valid integer: %s" % (arg))
+
+  if CountNotFound:
+    usage("ERROR: Missing count argument")
+  elif count <= 0:
+    usage("ERROR: Number of bits must be a positive number: %d" % (count))
+  elif Overflow and count == 1:
+    usage("ERROR: Overflow flag can't be used unless count is > 1")
 else:
-  print("ERROR: must give only one argument")
-  sys.exit(1)
+  usage("ERROR: Too many command line arguments")
 
 #Header info
 print(
@@ -92,17 +99,20 @@ module Sum(\Gi-1:-1 , Ai, Bi, Si);
 
   assign Si = \Gi-1:-1 ^ Ai ^ Bi;
 endmodule
+'''[1:] % (dt, count, count))
 
-module padder%d(A, B, Cin, S, Cout);
+print(
+'''
+module padder%d(A, B, Cin, S, Cout%s);
   parameter N = %d;
   input [N-1:0] A, B;
   input Cin;
   output [N-1:0] S;
   output Cout;
-
+%s
   // P[i] is an alias for Pi:i, likewise G[i] is an alias for Gi:i
   wire [N-2:-1] P, G;
-'''[1:] % (dt, count, count, count, count))
+'''[1:] % (count, (", OVF" if Overflow else ""), count, ("  output OVF;\n" if Overflow else "")))
 
 if count == 1:
   print(
@@ -175,9 +185,15 @@ for i in range(-1, count-1):
   else:
     print("  Sum s%d(\\G%d:-1 , A[%d], B[%d], S[%d]);\n" % (i+1, i, i+1, i+1, i+1));
 
-# Compute Cout and end the module.
+# Compute Cout
 if count == 1:
   print("  assign Cout = (G[%d] & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
 else:
   print("  assign Cout = (\\G%d:-1 & A[%d]) | (\\G%d:-1 & B[%d]) | (A[%d] & B[%d]);\n" % (count-2, count-1, count-2, count-1, count-1, count-1))
+
+# If needed, compute the overflow flag
+if Overflow:
+  print("  assign OVF = \\G%d:-1 ^ %s;\n" % (count-2, ("\\G%d:-1 " % (count-3)) if count > 2 else "G[-1]"));
+
+# End the module
 print("endmodule");
