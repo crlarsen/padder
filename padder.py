@@ -199,7 +199,7 @@ else:
 
 # If needed, compute the overflow flag
 if Overflow:
-  print("  assign OVF = (A[%d] & B[%d]) ^ %s;\n" % (count-1, count-1, ("\\G%d:-1 " % (count-2)) if count > 1 else "G[-1]"));
+  print("  assign OVF = Cout ^ %s;\n" % (("\\G%d:-1 " % (count-2)) if count > 1 else "G[-1]"));
 
 # End the module
 print("endmodule");
